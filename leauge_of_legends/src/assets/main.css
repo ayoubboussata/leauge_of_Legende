@@ -1,0 +1,27 @@
+@import './base.css';
+
+
+#app {
+   padding: 10px;
+   font-weight: normal;
+}
+
+a,
+.green {
+   text-decoration: none;
+   transition: 0.4s;
+   padding: 3px;
+}
+
+body {
+   background: #1D4350;
+   background: -webkit-linear-gradient(to right, #A43931, #1D4350);
+   background: linear-gradient(to right, #A43931, #1D4350);
+   max-width: 1900px;
+   margin-left: auto;
+   margin-right: auto;
+   font-family: 'Poppins', sans-serif ;
+   color: #EAEAEA ;
+   overflow-x: hidden ;
+}
+
