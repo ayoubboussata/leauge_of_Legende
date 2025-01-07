@@ -16,16 +16,8 @@
               <router-link class="navTxt" :to="tab.path">{{ tab.name }}</router-link>
             </li>
           </ul>
-          <div class="movable" ref="movable"></div>
         </div>
       </div>
-    </div>
-    <div>
-      <h1>Bienvenue sur Leaugepedia</h1>
-      <p>
-        Leaugepedia est un site web qui vous permet de consulter des informations sur les champions du jeu vidéo
-        League of Legends.
-      </p>
     </div>
   </header>
 </template>
