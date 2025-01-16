@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import ChampionView from '../views/ChampionsView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomeView from '../views/HomeView.vue';
+import ChampionsView from '../views/ChampionsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,9 +13,9 @@ const router = createRouter({
     {
       path: '/champions',
       name: 'champions',
-      component: ChampionView,
+      component: ChampionsView,
     },
   ],
-})
+});
 
-export default router
+export default router;

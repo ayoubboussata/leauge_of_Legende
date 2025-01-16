@@ -2,9 +2,6 @@
   <page-view>
     <div class="page">
       <header-view />
-      <h1>
-        champions
-      </h1>
     </div>
     <champ-card></champ-card>
   </page-view>

@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .pageMain {
   background: rgba(17, 24, 39, 0.9);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

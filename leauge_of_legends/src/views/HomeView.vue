@@ -2,12 +2,12 @@
   <div>
     <page-view>
       <header-view />
-      <div class="hero-section">
+      <div class="hero-section carousel-champ">
         <h1>Bienvenue sur Leaugepedia, votre source ultime pour tout ce qui concerne League of Legends !</h1>
         <button class="explore-btn" @click="exploreBtn">Commencer l'exploration</button>
       </div>
-      <div class="carousel-champ">
-        <carousel-champ />
+      <div>
+        <carrousel-champ />
       </div>
       <section class="stats-section">
         <h2>Statistiques rapides</h2>
@@ -34,24 +34,26 @@
 <script setup>
 import HeaderView from '@/components/PageComponents/HeaderPage.vue';
 import PageView from '@/components/PageComponents/PageView.vue';
-import CarouselChamp from '@/components/CarrouselChamp.vue';
+import CarrouselChamp from '@/components/CarrouselChamp.vue';
 import axios from 'axios';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const manyChamp = ref("");
 const manyItems = ref("");
 const patch = ref("");
+const router = useRouter();
 
 
 const exploreBtn = () => {
-  window.location.href = '/champions';
+  router.push('/champions');
 };
 
 // fonction pour récupérer tous les champions
 async function fetchAllPlayer() {
   try {
     const response = await axios.get(
-      'http://ddragon.leagueoflegends.com/cdn/11.20.1/data/fr_FR/champion.json'
+      'http://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/champion.json'
     );
     const allChampions = Object.values(response.data.data);
     manyChamp.value = allChampions.length;
@@ -65,7 +67,7 @@ async function fetchAllPlayer() {
 async function fetchAllItemsAndVersion() {
   try {
     const response = await axios.get(
-      'https://ddragon.leagueoflegends.com/cdn/14.24.1/data/fr_FR/item.json');
+      'https://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/item.json');
     const allItems = Object.values(response.data.data);
     manyItems.value = allItems.length;
     patch.value = response.data.version;
@@ -93,9 +95,12 @@ fetchAllPlayer();
 }
 
 .hero-section h1 {
-  font-size: 2.5em;
+  font-size: 20px;
   margin-bottom: 20px;
-  color: #ffffff;
+  color: #000;
+  font-family: fantasy;
+  display: inline;
+  filter: drop-shadow(2px 2px 4px rgba(128, 128, 128, 1));
 }
 
 .hero-section p {
@@ -131,7 +136,7 @@ fetchAllPlayer();
 }
 
 .stats-section h2 {
-  font-size: 2em;
+  font-size: 32px;
   margin-bottom: 20px;
   color: #FFD700;
 }
@@ -145,20 +150,65 @@ fetchAllPlayer();
 
 .stat-card {
   background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 20px;
   width: 150px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .stat-card h3 {
-  font-size: 2em;
+  font-size: 30px;
   margin-bottom: 10px;
   color: #00ffea;
 }
 
 .stat-card p {
   font-size: 1.2em;
+}
+
+/* Style pour l'image */
+.carousel-champ {
+  padding: 50px;
+  background: url('../img/lol1.jpg') no-repeat center;
+  background-size: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-champ img {
+  max-width: 50%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 900px) {
+  .carousel-champ {
+    padding: 100px 0;
+    background: url('../img/lol1.jpg') no-repeat center;
+    background-size: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-section h1 {
+    font-size: 40px;
+    margin-bottom: 20px;
+    color: #000;
+    font-family: fantasy;
+    display: inline;
+    filter: drop-shadow(2px 2px 4px rgba(128, 128, 128, 1));
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    width: 150px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
 }
 </style>

@@ -72,9 +72,6 @@ header {
 }
 
 .pageLogoContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
   padding: 30px;
 }
@@ -109,17 +106,6 @@ p {
   border-radius: 10px;
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  padding: 10px 0;
-  margin: 0;
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
-  position: relative;
-  /* Zorg ervoor dat .movable zich hierbinnen positioneert */
-}
 
 .tab {
   padding: 15px 40px;
@@ -158,6 +144,24 @@ p {
   transition: left 0.3s, width 0.3s;
   border-radius: 2px;
   z-index: 1;
-  /* Zorg ervoor dat de indicator zichtbaar is boven de tabs */
+}
+
+@media (min-width: 900px) {
+  .pageLogoContainer {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
 }
 </style>

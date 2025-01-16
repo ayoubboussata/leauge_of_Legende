@@ -1,23 +1,53 @@
 <template>
-  <div>
-    <input type="text" v-model="searchQuery" placeholder="chercher un champion" />
+  <!-- Laadindicator -->
+  <div v-if="loading" class="loading">
+    <p>Chargement des champions...</p>
   </div>
-  <div class="champBox">
-    <div class="champion" v-for="champion in filteredChampions" :key="champion.id" @click="openModal(champion)">
-      <div class="champImgName">
-        <img
-          :src="`http://ddragon.leagueoflegends.com/cdn/11.20.1/img/champion/${champion.id}.png`"
-          alt="champion" />
-        <p>{{ champion.name }}</p>
+
+  <!-- Content wordt pas weergegeven als de data geladen is -->
+  <div v-else>
+    <input type="text" v-model="searchQuery" placeholder="Chercher un champion" />
+
+    <div class="champBox">
+      <div
+        class="champion"
+        v-for="champion in filteredChampions"
+        :key="champion.id"
+        @click="openModal(champion)">
+        <div class="champImgName">
+          <div class="img">
+            <img
+              :src="`http://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${champion.id}.png`"
+              alt="champion" />
+          </div>
+          <p>{{ champion.name }}</p>
+        </div>
       </div>
     </div>
+
     <!-- Modal -->
     <div v-if="isModalVisible" class="modalOverlay" @click.self="closeModal">
       <div class="modalContent">
         <h2 class="championName">{{ selectedChampion.name }}</h2>
-        <img
-          :src="`http://ddragon.leagueoflegends.com/cdn/11.20.1/img/champion/${selectedChampion.id}.png`"
-          alt="champion" />
+        <div class="championsdetailsimgs">
+          <img
+            :src="`http://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${selectedChampion.id}.png`"
+            alt="champion" />
+          <div class="championDetails">
+            <div class="degat_mana">
+              <p>⚔️: {{ degat }}</p>
+              <p>💧: {{ mana }}</p>
+            </div>
+            <div class="pv_shield">
+              <p>❤️: {{ pv }}</p>
+              <p>🛡️: {{ shield }}</p>
+            </div>
+            <div class="as_bot">
+              <p>🪓: {{ attackspeed }}</p>
+              <p>👞: {{ boots }}</p>
+            </div>
+          </div>
+        </div>
         <p><span class="details">Surnom:</span> {{ selectedChampion.title }}</p>
         <p><span class="details">Lore:</span> {{ selectedChampion.blurb }}</p>
         <p><span class="details">Rôle:</span> {{ selectedChampion.tags.join(', ') }}</p>
@@ -28,6 +58,7 @@
 </template>
 
 
+
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
@@ -36,6 +67,14 @@ const champions = ref([]);
 const searchQuery = ref('');
 const isModalVisible = ref(false);
 const selectedChampion = ref(null);
+const loading = ref(true);
+const degat = ref(0);
+const mana = ref(0);
+const pv = ref(0);
+const shield = ref(0);
+const attackspeed = ref(0);
+const boots = ref(0);
+
 
 const filteredChampions = computed(() => {
   return champions.value.filter((champion) =>
@@ -43,20 +82,59 @@ const filteredChampions = computed(() => {
   );
 });
 
+// Dynamically fetch version
+async function fetchVersion() {
+  try {
+    const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+    return response.data[0];
+  } catch (error) {
+    console.error('Error fetching version:', error);
+    return '15.1.1';
+  }
+}
+
+
 async function fetchChampion() {
   try {
+    const version = await fetchVersion();
     const response = await axios.get(
-      'http://ddragon.leagueoflegends.com/cdn/11.20.1/data/fr_FR/champion.json'
+      `http://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion.json`
     );
-    champions.value = Object.values(response.data.data); //  convertir les champions en array
+
+    champions.value = Object.values(response.data.data);
   } catch (error) {
     console.error('Error fetching champion:', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function fetchChampionDetails(championName) {
+  try {
+    const version = await fetchVersion();
+    const response = await axios.get(
+      `http://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion/${championName}.json`
+    );
+
+    const champData = response.data.data[championName];
+    console.log(champData);
+    if (champData) {
+      degat.value = champData.stats.attackdamage;
+      mana.value = champData.stats.mp;
+      pv.value = champData.stats.hp;
+      shield.value = champData.stats.armor;
+      attackspeed.value = champData.stats.attackspeed;
+      boots.value = champData.stats.movespeed;
+    }
+  } catch (error) {
+    console.error('Error fetching champion details:', error);
   }
 }
 
 function openModal(champion) {
   selectedChampion.value = champion;
   isModalVisible.value = true;
+  fetchChampionDetails(champion.id);
 }
 
 function closeModal() {
@@ -86,15 +164,15 @@ fetchChampion();
   align-items: center;
 }
 
-.champImgName img {
+.img {
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border: 3px solid #000;
 }
 
 .champImgName p {
   color: white;
-  font-size: 1.2rem;
+  font-size: 16px;
   margin-top: 10px;
 }
 
@@ -120,7 +198,7 @@ input {
   padding: 10px;
   border: none;
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 16px;
   color: white;
   background-color: #333;
 }
@@ -173,14 +251,14 @@ input::placeholder {
 /* Champion name */
 .modalContent h2 {
   margin-bottom: 10px;
-  font-size: 2rem;
+  font-size: 32px;
   color: #00ffea;
 }
 
 /* Champion details */
 .modalContent p {
   margin-bottom: 15px;
-  font-size: 1rem;
+  font-size: 16px;
   color: #d1d1d1;
   line-height: 1.5;
 }
@@ -192,7 +270,7 @@ input::placeholder {
   border-radius: 8px;
   background-color: #00ffea;
   color: #1c1c1c;
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
@@ -206,6 +284,34 @@ input::placeholder {
 /* Champion details */
 .details {
   font-weight: bold;
+}
+
+/*¨details pour les champions */
+.championDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.championsdetailsimgs {
+  display: flex;
+  justify-content: space-between;
+  max-width: 400px;
+}
+
+.degat_mana {
+  display: flex;
+  justify-content: space-between;
+  column-gap: 80px;
+}
+
+.pv_shield {
+  display: flex;
+  justify-content: space-between;
+}
+
+.as_bot {
+  display: flex;
+  justify-content: space-between;
 }
 
 /* Animations */
