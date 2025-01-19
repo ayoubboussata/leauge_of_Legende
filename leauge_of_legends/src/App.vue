@@ -4,23 +4,26 @@ import { RouterView, useRoute } from 'vue-router';
 
 <template>
   <RouterView v-slot="{ Component }">
-    <transition name="slide" mode="out-in">
+    <transition name="parallax-fade" mode="out-in">
       <component :is="Component" :key="useRoute().path" />
     </transition>
   </RouterView>
 </template>
 
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.5s ease;
+.parallax-fade-enter-active,
+.parallax-fade-leave-active {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.7s ease;
 }
 
-.slide-enter {
-  transform: translateX(100%);
+.parallax-fade-enter {
+  transform: translateY(30px) scale(0.95);
+  opacity: 0;
 }
 
-.slide-leave-to {
-  transform: translateX(-100%);
+.parallax-fade-leave-to {
+  transform: translateY(-30px) scale(1.05);
+  opacity: 0;
 }
 </style>

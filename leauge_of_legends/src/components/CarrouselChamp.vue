@@ -9,7 +9,7 @@
         class="carousel-item">
         <div class="img">
           <img
-            :src="'http://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/' + champion.image.full"
+            :src="'https://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/' + champion.image.full"
             alt="champion" />
         </div>
         <p>{{ champion.name }}</p>
@@ -36,7 +36,7 @@ const slideInterval = 5000; // 5 secondes
 async function fetchAndSelectRandomChampions() {
   try {
     const response = await axios.get(
-      'http://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/champion.json'
+      'https://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/champion.json'
     );
     const allChampions = Object.values(response.data.data);
     randomChamp.value = allChampions.sort(() => 0.5 - Math.random()).slice(0, 60);

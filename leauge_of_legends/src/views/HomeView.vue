@@ -53,7 +53,7 @@ const exploreBtn = () => {
 async function fetchAllPlayer() {
   try {
     const response = await axios.get(
-      'http://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/champion.json'
+      'https://ddragon.leagueoflegends.com/cdn/15.1.1/data/fr_FR/champion.json'
     );
     const allChampions = Object.values(response.data.data);
     manyChamp.value = allChampions.length;
@@ -85,6 +85,9 @@ fetchAllPlayer();
 
 <style scoped>
 .hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 50px 20px;
   background: rgba(17, 24, 39, 0.8);
@@ -110,8 +113,8 @@ fetchAllPlayer();
 }
 
 .explore-btn {
-  padding: 15px 30px;
-  font-size: 1em;
+  padding: 10px 10px;
+  font-size: 10px;
   font-weight: bold;
   color: #0B0D17;
   background-color: #00ffea;
@@ -210,5 +213,16 @@ fetchAllPlayer();
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   }
 
+  .explore-btn {
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #0B0D17;
+    background-color: #00ffea;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
 }
 </style>

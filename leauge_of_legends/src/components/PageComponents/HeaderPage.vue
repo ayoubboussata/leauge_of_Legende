@@ -34,9 +34,9 @@ const route = useRoute();
 const tabsData = [
   { name: 'Accueil', path: '/', index: 0 },
   { name: 'Champions', path: '/champions', index: 1 },
-  { name: 'Items', path: '/items', index: 2 },
-  { name: 'Sorts', path: '/spells', index: 4 },
-  { name: 'Info', path: '/info', index: 5 },
+  { name: 'Sorts', path: '/sorts', index: 2 },
+  { name: 'Items', path: '/items', index: 3 },
+  { name: 'Info', path: '/info', index: 4 },
 ];
 
 const isActive = (path) => route.path === path;

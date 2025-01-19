@@ -1,10 +1,8 @@
 <template>
-  <!-- Laadindicator -->
   <div v-if="loading" class="loading">
     <p>Chargement des champions...</p>
   </div>
 
-  <!-- Content wordt pas weergegeven als de data geladen is -->
   <div v-else>
     <input type="text" v-model="searchQuery" placeholder="Chercher un champion" />
 
@@ -17,46 +15,91 @@
         <div class="champImgName">
           <div class="img">
             <img
-              :src="`http://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${champion.id}.png`"
+              :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${champion.id}.png`"
               alt="champion" />
           </div>
           <p>{{ champion.name }}</p>
         </div>
       </div>
     </div>
-
     <!-- Modal -->
     <div v-if="isModalVisible" class="modalOverlay" @click.self="closeModal">
       <div class="modalContent">
         <h2 class="championName">{{ selectedChampion.name }}</h2>
         <div class="championsdetailsimgs">
           <img
-            :src="`http://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${selectedChampion.id}.png`"
+            :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${selectedChampion.id}.png`"
             alt="champion" />
-          <div class="championDetails">
-            <div class="degat_mana">
-              <p>⚔️: {{ degat }}</p>
-              <p>💧: {{ mana }}</p>
-            </div>
-            <div class="pv_shield">
-              <p>❤️: {{ pv }}</p>
-              <p>🛡️: {{ shield }}</p>
-            </div>
-            <div class="as_bot">
-              <p>🪓: {{ attackspeed }}</p>
-              <p>👞: {{ boots }}</p>
+          <div class="championDetailsSorts">
+            <div class="championDetails">
+              <div class="degat_mana">
+                <p>⚔️<br> {{ degat }}</p>
+                <p>💧<br> {{ mana }}</p>
+              </div>
+              <div class="pv_shield">
+                <p>❤️<br> {{ pv }}</p>
+                <p>🛡️<br> {{ shield }}</p>
+              </div>
+              <div class="as_bot">
+                <p>🪓<br> {{ attackspeed }}</p>
+                <p>👞<br> {{ boots }}</p>
+              </div>
             </div>
           </div>
         </div>
         <p><span class="details">Surnom:</span> {{ selectedChampion.title }}</p>
         <p><span class="details">Lore:</span> {{ selectedChampion.blurb }}</p>
         <p><span class="details">Rôle:</span> {{ selectedChampion.tags.join(', ') }}</p>
-        <button @click="closeModal">Fermer</button>
+        <div class="sortsBtn">
+          <button @click="closeModal">Fermer</button>
+          <button @click="SortsModal">Sorts</button>
+
+        </div>
+      </div>
+
+      <!-- Sorts Modal -->
+      <div v-if="isSortsModalVisible" class="modalOverlay" @click.self="closeSortsModal" id="sortsModal">
+        <div class="modalContent">
+          <div class="modalSortsdiv">
+            <h2>Compétences</h2>
+            <div class="competences">
+              <div>
+                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${qspellimg}`"
+                  alt="qspell" class="spellimg">
+                <p>{{ qspell }}</p>
+              </div>
+              <div>
+                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${wspellimg}`"
+                  alt="wspell" class="spellimg">
+                <p>{{ wspell }}</p>
+              </div>
+              <div>
+                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${espellimg}`"
+                  alt="espell" class="spellimg">
+                <p>{{ espell }}</p>
+              </div>
+              <div>
+                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${rspellimg}`"
+                  alt="rspell" class="spellimg">
+                <p>{{ rspell }}</p>
+              </div>
+              <div>
+                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/passive/${pspellimg}`"
+                  alt="pspell" class="spellimg">
+                <p>{{ pspell }}</p>
+              </div>
+            </div>
+            <div class="sortsBtn">
+              <button @click="closeSortsModal">Fermer</button>
+              <button @click="plusDeDetails">Plus</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </template>
-
 
 
 <script setup>
@@ -74,6 +117,18 @@ const pv = ref(0);
 const shield = ref(0);
 const attackspeed = ref(0);
 const boots = ref(0);
+const isSortsModalVisible = ref(false);
+const qspell = ref('');
+const qspellimg = ref('');
+const wspell = ref('');
+const wspellimg = ref('');
+const espell = ref('');
+const espellimg = ref('');
+const rspell = ref('');
+const rspellimg = ref('');
+const pspell = ref('');
+const pspellimg = ref('');
+
 
 
 const filteredChampions = computed(() => {
@@ -98,7 +153,7 @@ async function fetchChampion() {
   try {
     const version = await fetchVersion();
     const response = await axios.get(
-      `http://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion.json`
+      `https://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion.json`
     );
 
     champions.value = Object.values(response.data.data);
@@ -113,23 +168,44 @@ async function fetchChampionDetails(championName) {
   try {
     const version = await fetchVersion();
     const response = await axios.get(
-      `http://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion/${championName}.json`
+      `https://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion/${championName}.json`
     );
-
     const champData = response.data.data[championName];
     console.log(champData);
     if (champData) {
+
       degat.value = champData.stats.attackdamage;
       mana.value = champData.stats.mp;
       pv.value = champData.stats.hp;
       shield.value = champData.stats.armor;
       attackspeed.value = champData.stats.attackspeed;
       boots.value = champData.stats.movespeed;
+
+
+      qspell.value = champData.spells[0].name.split('/')[0];
+      qspellimg.value = champData.spells[0].image.full;
+      wspell.value = champData.spells[1].name.split('/')[0];
+      wspellimg.value = champData.spells[1].image.full;
+      espell.value = champData.spells[2].name.split('/')[0];
+      espellimg.value = champData.spells[2].image.full;
+      rspell.value = champData.spells[3].name.split('/')[0];
+      rspellimg.value = champData.spells[3].image.full;
+      pspell.value = champData.passive.name.split('/')[0];
+      pspellimg.value = champData.passive.image.full;
     }
   } catch (error) {
     console.error('Error fetching champion details:', error);
   }
 }
+
+function SortsModal() {
+  isSortsModalVisible.value = true;
+}
+
+function closeSortsModal() {
+  isSortsModalVisible.value = false;
+}
+
 
 function openModal(champion) {
   selectedChampion.value = champion;
@@ -172,7 +248,7 @@ fetchChampion();
 
 .champImgName p {
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   margin-top: 10px;
 }
 
@@ -287,32 +363,89 @@ input::placeholder {
 }
 
 /*¨details pour les champions */
-.championDetails {
-  display: flex;
-  flex-direction: column;
-}
-
 .championsdetailsimgs {
   display: flex;
-  justify-content: space-between;
-  max-width: 400px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.championDetails {
+  display: flex;
+  column-gap: 30px;
 }
 
 .degat_mana {
   display: flex;
-  justify-content: space-between;
-  column-gap: 80px;
+  column-gap: 20px;
 }
 
 .pv_shield {
   display: flex;
-  justify-content: space-between;
+  column-gap: 20px;
 }
 
 .as_bot {
   display: flex;
+  column-gap: 20px;
+}
+
+/* Sorts */
+
+.sortBtn {
+  margin-top: 20px;
+}
+
+.competences {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}
+
+.competences div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+}
+
+.competences img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  border: 3px solid #00ffea;
+}
+
+.competences p {
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #d1d1d1;
+  line-height: 1;
+}
+
+/* Sorts modal */
+
+.modalSortsdiv {
+  padding: 10px;
+  background: #1c1c1c;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: #f8f8f8;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* Sorts button */
+.sortsBtn {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  max-width: 261px;
   justify-content: space-between;
 }
+
+/* loading */
+
 
 /* Animations */
 @keyframes fadeIn {
@@ -332,6 +465,37 @@ input::placeholder {
 
   to {
     transform: translateY(0);
+  }
+}
+
+@media (min-width: 600px) {
+  .championsdetailsimgs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 490px;
+    align-items: center;
+  }
+
+  .degat_mana {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .pv_shield {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .as_bot {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .championDetails {
+    display: flex;
+    flex-direction: column;
+    width: 120px;
   }
 }
 </style>
