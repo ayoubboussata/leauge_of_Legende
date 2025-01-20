@@ -12,7 +12,8 @@
             <li v-for="tab in tabsData"
               :key="tab.path"
               class="tab"
-              :class="{ active: isActive(tab.path) }">
+              :class="{ active: isActive(tab.path) }"
+              @click="navigate(tab.path)">
               <router-link class="navTxt" :to="tab.path">{{ tab.name }}</router-link>
             </li>
           </ul>
@@ -25,17 +26,23 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const tabs = ref(null);
 const movable = ref(null);
 const route = useRoute();
+const router = useRouter();
+
+
+const navigate = (path) => {
+  router.push(path);
+};
 
 const tabsData = [
   { name: 'Accueil', path: '/', index: 0 },
   { name: 'Champions', path: '/champions', index: 1 },
   { name: 'Sorts', path: '/sorts', index: 2 },
-  { name: 'Items', path: '/items', index: 3 },
+  // { name: 'Items', path: '/items', index: 3 },
   { name: 'Info', path: '/info', index: 4 },
 ];
 
@@ -108,6 +115,9 @@ p {
 
 
 .tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 15px 40px;
   cursor: pointer;
   font-size: 1em;
@@ -116,6 +126,28 @@ p {
   text-transform: uppercase;
   transition: background 0.3s ease, color 0.3s ease;
   position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tab a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.navTxt {
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
@@ -131,10 +163,6 @@ p {
   border-radius: 4px;
 }
 
-.navTxt {
-  text-decoration: none;
-  color: inherit;
-}
 
 .movable {
   position: absolute;

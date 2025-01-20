@@ -1,10 +1,11 @@
 <template>
-  <div v-if="loading" class="loading">
-    <p>Chargement des champions...</p>
+  <div v-if="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Chargement...</p>
   </div>
 
   <div v-else>
-    <input type="text" v-model="searchQuery" placeholder="Chercher un champion" />
+    <input type="text" v-model="searchQuery" placeholder="Chercher un champion ..." />
 
     <div class="champBox">
       <div
@@ -14,10 +15,14 @@
         @click="openModal(champion)">
         <div class="champImgName">
           <div class="img">
+            <div v-if="!loadedImages[champion.id]" class="spinner"></div>
             <img
               :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/champion/${champion.id}.png`"
-              alt="champion" />
+              alt="champion"
+              @load="markImageAsLoaded(champion.id)"
+              :class="{ hidden: !loadedImages[champion.id] }" />
           </div>
+
           <p>{{ champion.name }}</p>
         </div>
       </div>
@@ -52,50 +57,8 @@
         <p><span class="details">Rôle:</span> {{ selectedChampion.tags.join(', ') }}</p>
         <div class="sortsBtn">
           <button @click="closeModal">Fermer</button>
-          <button @click="SortsModal">Sorts</button>
-
+          <button @click="goToSorts">Sorts</button>
         </div>
-      </div>
-
-      <!-- Sorts Modal -->
-      <div v-if="isSortsModalVisible" class="modalOverlay" @click.self="closeSortsModal" id="sortsModal">
-        <div class="modalContent">
-          <div class="modalSortsdiv">
-            <h2>Compétences</h2>
-            <div class="competences">
-              <div>
-                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${qspellimg}`"
-                  alt="qspell" class="spellimg">
-                <p>{{ qspell }}</p>
-              </div>
-              <div>
-                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${wspellimg}`"
-                  alt="wspell" class="spellimg">
-                <p>{{ wspell }}</p>
-              </div>
-              <div>
-                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${espellimg}`"
-                  alt="espell" class="spellimg">
-                <p>{{ espell }}</p>
-              </div>
-              <div>
-                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${rspellimg}`"
-                  alt="rspell" class="spellimg">
-                <p>{{ rspell }}</p>
-              </div>
-              <div>
-                <img :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/passive/${pspellimg}`"
-                  alt="pspell" class="spellimg">
-                <p>{{ pspell }}</p>
-              </div>
-            </div>
-            <div class="sortsBtn">
-              <button @click="closeSortsModal">Fermer</button>
-              <button @click="plusDeDetails">Plus</button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
@@ -105,7 +68,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const champions = ref([]);
 const searchQuery = ref('');
 const isModalVisible = ref(false);
@@ -117,18 +82,11 @@ const pv = ref(0);
 const shield = ref(0);
 const attackspeed = ref(0);
 const boots = ref(0);
-const isSortsModalVisible = ref(false);
-const qspell = ref('');
-const qspellimg = ref('');
-const wspell = ref('');
-const wspellimg = ref('');
-const espell = ref('');
-const espellimg = ref('');
-const rspell = ref('');
-const rspellimg = ref('');
-const pspell = ref('');
-const pspellimg = ref('');
+const loadedImages = ref({});
 
+const markImageAsLoaded = (imageId) => {
+  loadedImages.value = { ...loadedImages.value, [imageId]: true };
+};
 
 
 const filteredChampions = computed(() => {
@@ -171,39 +129,22 @@ async function fetchChampionDetails(championName) {
       `https://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion/${championName}.json`
     );
     const champData = response.data.data[championName];
-    console.log(champData);
-    if (champData) {
 
+    if (champData) {
       degat.value = champData.stats.attackdamage;
       mana.value = champData.stats.mp;
       pv.value = champData.stats.hp;
       shield.value = champData.stats.armor;
       attackspeed.value = champData.stats.attackspeed;
       boots.value = champData.stats.movespeed;
-
-
-      qspell.value = champData.spells[0].name.split('/')[0];
-      qspellimg.value = champData.spells[0].image.full;
-      wspell.value = champData.spells[1].name.split('/')[0];
-      wspellimg.value = champData.spells[1].image.full;
-      espell.value = champData.spells[2].name.split('/')[0];
-      espellimg.value = champData.spells[2].image.full;
-      rspell.value = champData.spells[3].name.split('/')[0];
-      rspellimg.value = champData.spells[3].image.full;
-      pspell.value = champData.passive.name.split('/')[0];
-      pspellimg.value = champData.passive.image.full;
     }
   } catch (error) {
     console.error('Error fetching champion details:', error);
   }
 }
 
-function SortsModal() {
-  isSortsModalVisible.value = true;
-}
-
-function closeSortsModal() {
-  isSortsModalVisible.value = false;
+function goToSorts() {
+  router.push({ path: '/sorts' });
 }
 
 
@@ -254,6 +195,7 @@ fetchChampion();
 
 .champImgName img:hover {
   transform: scale(1.1);
+  cursor: pointer;
 }
 
 .champImgName img {
@@ -284,7 +226,9 @@ input:focus {
 }
 
 input::placeholder {
-  color: white;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+  opacity: 0.5;
 }
 
 /* Modal overlay */
@@ -446,6 +390,32 @@ input::placeholder {
 
 /* loading */
 
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #00ffea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none;
+}
 
 /* Animations */
 @keyframes fadeIn {
@@ -465,6 +435,42 @@ input::placeholder {
 
   to {
     transform: translateY(0);
+  }
+}
+
+/* loading container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  /* Volledige hoogte */
+  text-align: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid #00ffea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+/* Loading Animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
 
@@ -496,6 +502,10 @@ input::placeholder {
     display: flex;
     flex-direction: column;
     width: 120px;
+  }
+
+  .competences {
+    column-gap: 70px;
   }
 }
 </style>

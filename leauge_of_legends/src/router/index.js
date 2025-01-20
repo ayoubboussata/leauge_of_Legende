@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import ChampionsView from '../views/ChampionsView.vue';
 import ItemView from '../views/ItemsView.vue';
-import SortsView from '@/views/SortsView.vue';
 import InfoView from '@/views/InfoView.vue';
+import SortsView from '@/views/SortsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,14 +19,14 @@ const router = createRouter({
       component: ChampionsView,
     },
     {
-      path: '/items',
-      name: 'items',
-      component: ItemView,
-    },
-    {
       path: '/sorts',
       name: 'sorts',
       component: SortsView,
+    },
+    {
+      path: '/items',
+      name: 'items',
+      component: ItemView,
     },
     {
       path: '/info',
