@@ -57,7 +57,7 @@
         <p><span class="details">Rôle:</span> {{ selectedChampion.tags.join(', ') }}</p>
         <div class="sortsBtn">
           <button @click="closeModal">Fermer</button>
-          <button @click="goToSorts">Sorts</button>
+          <button @click="goToSorts(selectedChampion.name)">Sorts</button>
         </div>
       </div>
     </div>
@@ -143,9 +143,10 @@ async function fetchChampionDetails(championName) {
   }
 }
 
-function goToSorts() {
-  router.push({ path: '/sorts' });
+function goToSorts(championName) {
+  router.push({ path: '/sorts', query: { search: championName } });
 }
+
 
 
 function openModal(champion) {

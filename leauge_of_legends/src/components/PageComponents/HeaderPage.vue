@@ -83,6 +83,11 @@ header {
   padding: 30px;
 }
 
+.pageLogoContainerphoto {
+  display: flex;
+  justify-content: center;
+}
+
 h1 {
   font-size: 3em;
   color: #52a0e0;

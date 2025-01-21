@@ -1,5 +1,4 @@
 <template>
-
   <div>
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
@@ -12,7 +11,7 @@
       <div v-for="champion in filteredChampions" :key="champion.name" class="champion-card">
         <h3>{{ champion.name }}</h3>
         <div class="competences">
-          <div v-for="(spell, index) in champion.spells" :key="index">
+          <div v-for="(spell, index) in champion.spells" :key="index" @click="openSpellModal(spell)">
             <div v-if="!loadedImages[spell.image]" class="spinner"></div>
             <img
               :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${spell.image}`"
@@ -22,6 +21,7 @@
               :class="{ hidden: !loadedImages[spell.image] }" />
             <p>{{ spell.name }}</p>
           </div>
+
           <!-- Passieve -->
           <div>
             <div v-if="!loadedImages[champion.passive.image]" class="spinner"></div>
@@ -35,20 +35,64 @@
           </div>
         </div>
       </div>
+      <div v-if="selectedSpell" class="modalContent">
+        <button class="modalClose" @click="closeSpellModal">&times;</button>
+        <h2>{{ selectedSpell?.name || 'Unknown Spell' }}</h2>
+        <img
+          :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${selectedSpell?.image || 'placeholder.png'}`"
+          alt="Spell Image" />
+        <p><b>Beschrijving:</b> {{ selectedSpell?.description || 'No description available' }}</p>
+        <p><b>Cooldown:</b> {{ selectedSpell?.cooldown?.length ? selectedSpell.cooldown.join(' / ') : 'N/A' }} secondes</p>
+        <p><b>Kosten:</b> {{ selectedSpell?.cost?.length ? selectedSpell.cost.join(' / ') : 'N/A' }}</p>
+        <div class="stats-container">
+          <div class="stats-item">
+            <b>Power</b>
+            <span>{{ selectedSpell?.power || 'N/A' }}</span>
+          </div>
+          <div class="stats-item">
+            <b>Range</b>
+            <span>{{ selectedSpell?.range || 'N/A' }}</span>
+          </div>
+        </div>
+        <button @click="closeSpellModal">Fermer</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { toRaw } from 'vue';
+import { useRoute } from 'vue-router';
 
 const loading = ref(true);
 const champions = ref([]);
 const championDetails = ref([]);
 const loadedImages = ref({});
 const searchQuery = ref('');
+const route = useRoute();
+const selectedSpell = ref(null);
+
+function openSpellModal(spell) {
+  if (!spell) {
+    console.error('Spell data is missing:', spell);
+    return;
+  }
+
+  selectedSpell.value = {
+    name: spell.name || 'Unknown',
+    description: spell.description || 'No description available',
+    cooldown: spell.cooldown || [],
+    cost: spell.cost || [],
+    image: spell.image || 'placeholder.png',
+  };
+}
+
+
+function closeSpellModal() {
+  selectedSpell.value = null;
+}
 
 const filteredChampions = computed(() => {
   return championDetails.value.filter(champion =>
@@ -95,11 +139,14 @@ async function fetchChampionDetails(championName) {
       championDetails.value.push({
         name: champData.name,
         spells: champData.spells.map(spell => ({
-          name: spell.name.split('/')[0],
+          name: spell.name,
           image: spell.image.full,
+          description: spell.description,
+          cooldown: spell.cooldown || [],
+          cost: spell.cost || [],
         })),
         passive: {
-          name: champData.passive.name.split('/')[0],
+          name: champData.passive.name,
           image: champData.passive.image.full,
         },
       });
@@ -109,20 +156,26 @@ async function fetchChampionDetails(championName) {
   }
 }
 
+
 async function fetchAllChampionDetails() {
   try {
     await fetchChampions();
     const plainChampions = toRaw(champions.value);
 
-    await Promise.all(plainChampions.map(champion => fetchChampionDetails(champion.id)));
+    await Promise.all(
+      plainChampions.map(champion => fetchChampionDetails(champion.id))
+    );
 
     loading.value = false;
   } catch (error) {
-    console.error("Fout bij het ophalen van kampioendetails:", error);
+    console.error("Error fetching champion details:", error);
   }
 }
 
 fetchAllChampionDetails();
+onMounted(() => {
+  searchQuery.value = route.query.search || '';
+});
 </script>
 
 
@@ -133,7 +186,6 @@ fetchAllChampionDetails();
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-
 }
 
 .sorts {
@@ -141,6 +193,29 @@ fetchAllChampionDetails();
   flex-wrap: wrap;
   justify-content: center;
   gap: 80px;
+  padding-bottom: 20px;
+}
+
+/*input */
+input {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  color: white;
+  background-color: #333;
+}
+
+input:focus {
+  outline: none;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+  opacity: 0.5;
 }
 
 /* style pour chaque champion */
@@ -304,6 +379,134 @@ input::placeholder {
 
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Modal */
+.modalContent {
+  background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
+  padding: 30px;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  color: #f0f0f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  text-align: left;
+  position: relative;
+  animation: slideIn 0.4s ease-in-out;
+}
+
+.modalContent img {
+  display: block;
+  margin: 0 auto 20px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #00ffea;
+  box-shadow: 0 4px 12px rgba(0, 255, 234, 0.5);
+}
+
+.modalContent h2 {
+  font-size: 26px;
+  font-weight: bold;
+  color: #00ffea;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modalContent p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.modalContent p b {
+  color: #00d1b3;
+}
+
+.modalContent button {
+  display: inline-block;
+  margin: 15px auto 0;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #1e1e2e;
+  background-color: #00ffea;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modalContent button:hover {
+  background-color: #00d1b3;
+  transform: scale(1.05);
+}
+
+.modalContent .modalClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+  color: #f0f0f0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.modalContent .modalClose:hover {
+  color: #ff5a5a;
+}
+
+.modalContent .stats-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.modalContent .stats-item {
+  flex: 1 1 calc(50% - 10px);
+  background: #252542;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 5px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modalContent .stats-item b {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #00ffea;
+}
+
+.modalContent .stats-item span {
+  font-size: 14px;
+  color: #f0f0f0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>
