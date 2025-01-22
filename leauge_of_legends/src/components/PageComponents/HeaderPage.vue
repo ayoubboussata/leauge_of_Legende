@@ -6,6 +6,13 @@
           <img src="../PageComponents/assets/logo.webp" alt="Leaugepedia logo" class="pageLogo" height="130px" />
         </router-link>
       </div>
+
+      <!-- Google Translate Widget -->
+      <div id="google_translate_container">
+        <div id="google_translate_element"></div>
+      </div>
+
+
       <div class="tab-container">
         <div class="page">
           <ul class="tabs" ref="tabs">
@@ -22,7 +29,6 @@
     </div>
   </header>
 </template>
-
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
@@ -59,14 +65,36 @@ const updateMovable = () => {
   }
 };
 
+const loadGoogleTranslate = () => {
+  if (!window.googleTranslateElementInit) {
+    window.googleTranslateElementInit = function () {
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: 'en',
+          includedLanguages: 'en,fr,nl,de,es',
+          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        },
+        'google_translate_element'
+      );
+    };
+
+    let script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+};
 
 onMounted(() =>
-  updateMovable()
+  updateMovable(),
+  loadGoogleTranslate()
 );
 
 watch(route, () => {
   updateMovable();
 });
+
 </script>
 
 <style scoped>
@@ -86,6 +114,7 @@ header {
 .pageLogoContainerphoto {
   display: flex;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
 h1 {
@@ -177,6 +206,34 @@ p {
   transition: left 0.3s, width 0.3s;
   border-radius: 2px;
   z-index: 1;
+}
+
+/* Google Translate Widget */
+#google_translate_container {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 999;
+}
+
+:deep(.goog-te-gadget) {
+  font-size: 12px !important;
+  color: white !important;
+}
+
+:deep(.goog-te-gadget select) {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+:deep(.goog-logo-link),
+:deep(.goog-te-gadget span) {
+  display: none !important;
 }
 
 @media (min-width: 900px) {

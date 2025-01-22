@@ -23,7 +23,7 @@
           </div>
 
           <!-- Passieve -->
-          <div>
+          <div @click="openPassiveModal(champion.passive)">
             <div v-if="!loadedImages[champion.passive.image]" class="spinner"></div>
             <img
               :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/passive/${champion.passive.image}`"
@@ -35,30 +35,42 @@
           </div>
         </div>
       </div>
-      <div v-if="selectedSpell" class="modalContent">
-        <button class="modalClose" @click="closeSpellModal">&times;</button>
-        <h2>{{ selectedSpell?.name || 'Unknown Spell' }}</h2>
-        <img
-          :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${selectedSpell?.image || 'placeholder.png'}`"
-          alt="Spell Image" />
-        <p><b>Beschrijving:</b> {{ selectedSpell?.description || 'No description available' }}</p>
-        <p><b>Cooldown:</b> {{ selectedSpell?.cooldown?.length ? selectedSpell.cooldown.join(' / ') : 'N/A' }} secondes</p>
-        <p><b>Kosten:</b> {{ selectedSpell?.cost?.length ? selectedSpell.cost.join(' / ') : 'N/A' }}</p>
-        <div class="stats-container">
-          <div class="stats-item">
-            <b>Power</b>
-            <span>{{ selectedSpell?.power || 'N/A' }}</span>
+
+      <!-- Spell Modal -->
+      <div v-if="selectedSpell" class="modalOverlay" @click.self="closeSpellModal">
+        <div class="modalContent">
+          <div class="modalHeader">
+            <button class="modalClose" @click="closeSpellModal">&times;</button>
+            <h2>{{ selectedSpell?.name || 'Unknown Spell' }}</h2>
           </div>
-          <div class="stats-item">
-            <b>Range</b>
-            <span>{{ selectedSpell?.range || 'N/A' }}</span>
-          </div>
+          <img
+            :src="`https://ddragon.leagueoflegends.com/cdn/15.1.1/img/spell/${selectedSpell?.image || 'placeholder.png'}`"
+            alt="Spell Image" />
+          <p><b>Description:</b> {{ selectedSpell?.description || 'No description available' }}</p>
+          <p><b>Cooldown:</b> {{ selectedSpell?.cooldown?.length ? selectedSpell.cooldown.join(' / ') : 'N/A' }} secondes</p>
+          <p><b>Coût:</b> {{ selectedSpell?.cost?.length ? selectedSpell.cost.join(' / ') : 'N/A' }}</p>
+          <button @click="closeSpellModal">Fermer</button>
         </div>
-        <button @click="closeSpellModal">Fermer</button>
+      </div>
+
+      <!-- Passieve Modal -->
+      <div v-if="selectedPassive" class="modalOverlay" @click.self="closePassiveModal">
+        <div class="modalContent">
+          <div class="modalHeader">
+            <button class="modalClose" @click="closePassiveModal">&times;</button>
+            <h2>{{ selectedPassive?.name || 'Unknown Passive' }}</h2>
+          </div>
+          <img
+            :src="selectedPassive?.image || 'https://ddragon.leagueoflegends.com/cdn/15.1.1/img/passive/placeholder.png'"
+            alt="Passive Image" />
+          <p><b>Description:</b> {{ selectedPassive?.description || 'No description available' }}</p>
+          <button @click="closePassiveModal">Fermer</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -73,6 +85,14 @@ const loadedImages = ref({});
 const searchQuery = ref('');
 const route = useRoute();
 const selectedSpell = ref(null);
+const selectedPassive = ref(null);
+
+
+function removeHtmlTags(text) {
+  if (!text) return "No description available";
+  return text.replace(/<\/?[^>]+(>|$)/g, "");
+}
+
 
 function openSpellModal(spell) {
   if (!spell) {
@@ -82,16 +102,31 @@ function openSpellModal(spell) {
 
   selectedSpell.value = {
     name: spell.name || 'Unknown',
-    description: spell.description || 'No description available',
+    description: removeHtmlTags(spell.description),
     cooldown: spell.cooldown || [],
     cost: spell.cost || [],
-    image: spell.image || 'placeholder.png',
+    image: spell.image,
   };
 }
 
+function openPassiveModal(passive) {
+  if (!passive) {
+    console.error('Passive data is missing:', passive);
+    return;
+  }
+  selectedPassive.value = {
+    name: passive.name || 'Unknown Passive',
+    description: removeHtmlTags(passive.description),
+    image: `https://ddragon.leagueoflegends.com/cdn/15.1.1/img/passive/${passive.image}`,
+  };
+}
 
 function closeSpellModal() {
   selectedSpell.value = null;
+}
+
+function closePassiveModal() {
+  selectedPassive.value = null;
 }
 
 const filteredChampions = computed(() => {
@@ -148,6 +183,7 @@ async function fetchChampionDetails(championName) {
         passive: {
           name: champData.passive.name,
           image: champData.passive.image.full,
+          description: champData.passive.description,
         },
       });
     }
@@ -155,7 +191,6 @@ async function fetchChampionDetails(championName) {
     console.error(`Error fetching details for ${championName}:`, error);
   }
 }
-
 
 async function fetchAllChampionDetails() {
   try {
@@ -176,6 +211,7 @@ fetchAllChampionDetails();
 onMounted(() => {
   searchQuery.value = route.query.search || '';
 });
+
 </script>
 
 
@@ -192,8 +228,10 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 80px;
-  padding-bottom: 20px;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 /*input */
@@ -383,15 +421,29 @@ input::placeholder {
 }
 
 /* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
 .modalContent {
   background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
   padding: 30px;
   border-radius: 16px;
-  max-width: 600px;
+  max-width: 500px;
   width: 90%;
   color: #f0f0f0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  text-align: left;
+  text-align: center;
   position: relative;
   animation: slideIn 0.4s ease-in-out;
 }
@@ -407,7 +459,7 @@ input::placeholder {
 }
 
 .modalContent h2 {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: bold;
   color: #00ffea;
   margin-bottom: 20px;
@@ -443,7 +495,7 @@ input::placeholder {
   transform: scale(1.05);
 }
 
-.modalContent .modalClose {
+.modalClose {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -457,35 +509,6 @@ input::placeholder {
 
 .modalContent .modalClose:hover {
   color: #ff5a5a;
-}
-
-.modalContent .stats-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.modalContent .stats-item {
-  flex: 1 1 calc(50% - 10px);
-  background: #252542;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 5px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.modalContent .stats-item b {
-  display: block;
-  font-size: 18px;
-  margin-bottom: 5px;
-  color: #00ffea;
-}
-
-.modalContent .stats-item span {
-  font-size: 14px;
-  color: #f0f0f0;
 }
 
 @keyframes fadeIn {
@@ -507,6 +530,16 @@ input::placeholder {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@media (min-width: 600px) {
+  .modalContent h2 {
+    font-size: 26px;
+    font-weight: bold;
+    color: #00ffea;
+    margin-bottom: 20px;
+    text-align: center;
   }
 }
 </style>

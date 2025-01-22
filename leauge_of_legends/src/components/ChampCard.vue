@@ -4,7 +4,7 @@
     <p>Chargement...</p>
   </div>
 
-  <div v-else>
+  <div v-else class="champCard">
     <input type="text" v-model="searchQuery" placeholder="Chercher un champion ..." />
 
     <div class="champBox">
@@ -167,6 +167,14 @@ fetchChampion();
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.champCard {
+  padding: 20px;
 }
 
 .champion {
